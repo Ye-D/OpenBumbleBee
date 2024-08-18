@@ -137,12 +137,12 @@ struct CheetahDot::Impl : public EnableCPRNG {
     } else if (ring_bitlen <= 64) {
       poly_deg = 8192;
       //  ~ 128 + 32 bit
-      modulus_bits = {59, 55, 49, 49};
+      modulus_bits = {59, 55, 49, 55};
       parms.set_use_special_prime(true);
     } else {
       poly_deg = 16384;
       // ~ 256 + 30 bit
-      modulus_bits = {59, 59, 59, 59, 49, 49};
+      modulus_bits = {59, 59, 59, 59, 49, 55};
       parms.set_use_special_prime(true);
     }
 
