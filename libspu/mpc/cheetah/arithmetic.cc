@@ -256,7 +256,7 @@ NdArrayRef MulAA::proc(KernelEvalContext* ctx, const NdArrayRef& x,
   int64_t batch_sze = ctx->getState<CheetahMulState>()->get()->OLEBatchSize();
   int64_t numel = x.numel();
 
-  if (numel >= batch_sze) {
+  if (numel >= 2 * batch_sze) {
     return mulDirectly(ctx, x, y);
   }
   return mulWithBeaver(ctx, x, y);
@@ -339,32 +339,39 @@ NdArrayRef MulAA::mulWithBeaver(KernelEvalContext* ctx, const NdArrayRef& x,
 
 NdArrayRef MulAA::mulDirectly(KernelEvalContext* ctx, const NdArrayRef& x,
                               const NdArrayRef& y) const {
-  // (x0 + x1) * (y0+ y1)
-  // Compute the cross terms x0*y1, x1*y0 homomorphically
+  // Compute (x0 + x1) * (y0+ y1)
   auto* comm = ctx->getState<Communicator>();
   auto* mul_prot = ctx->getState<CheetahMulState>()->get();
   mul_prot->LazyInitKeys(x.eltype().as<Ring2k>()->field());
 
+  auto fx = x.reshape({x.numel()});
+  auto fy = y.reshape({y.numel()});
+  const int64_t n = fx.numel();
+  const int64_t nhalf = n / 2;
   const int rank = comm->getRank();
-  // auto fy = y.reshape({y.numel()});
 
+  // For long vectors, split into two subtasks.
   auto dupx = ctx->getState<CheetahMulState>()->duplx();
   std::future<NdArrayRef> task = std::async(std::launch::async, [&] {
-    if (rank == 0) {
-      return mul_prot->MulOLE(x, dupx.get(), true);
-    }
-    return mul_prot->MulOLE(y, dupx.get(), false);
+    return mul_prot->MulShare(fx.slice({nhalf}, {n}, {1}),
+                              fy.slice({nhalf}, {n}, {1}), dupx.get(),
+                              /*evaluator*/ rank == 0);
   });
 
-  NdArrayRef x1y0;
-  if (rank == 0) {
-    x1y0 = mul_prot->MulOLE(y, false);
-  } else {
-    x1y0 = mul_prot->MulOLE(x, true);
-  }
+  std::vector<NdArrayRef> out_slices(2);
+  out_slices[0] =
+      mul_prot->MulShare(fx.slice({0}, {nhalf}, {1}),
+                         fy.slice({0}, {nhalf}, {1}), /*evaluato*/ rank != 0);
+  out_slices[1] = task.get();
 
-  NdArrayRef x0y1 = task.get();
-  return ring_add(x0y1, ring_add(x1y0, ring_mul(x, y))).as(x.eltype());
+  NdArrayRef out(x.eltype(), x.shape());
+  int64_t offset = 0;
+  for (auto& out_slice : out_slices) {
+    std::memcpy(out.data<std::byte>() + offset, out_slice.data(),
+                out_slice.numel() * out.elsize());
+    offset += out_slice.numel() * out.elsize();
+  }
+  return out;
 }
 
 NdArrayRef MatMulVVS::proc(KernelEvalContext* ctx, const NdArrayRef& x,
