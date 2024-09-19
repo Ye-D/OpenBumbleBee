@@ -541,6 +541,7 @@ NdArrayRef BatchMatMulAA::proc(KernelEvalContext* ctx, const NdArrayRef& x,
   auto* comm = ctx->getState<Communicator>();
   auto* dot_prot = ctx->getState<CheetahDotState>()->get();
   const int rank = comm->getRank();
+  dot_prot->LazyInitKeys(x.eltype().as<Ring2k>()->field());
 
   // (x0 + x1) * (y0 + y1)
   // Compute the cross terms
