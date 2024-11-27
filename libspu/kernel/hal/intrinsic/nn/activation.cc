@@ -50,7 +50,7 @@ static std::vector<Value> ComputedBatchLessAP(SPUContext* ctx, const Value& x,
   }
 
   KernelEvalContext kctx(ctx);
-  auto _ret = spu::mpc::cheetah::BatchLessThan(&kctx, x.data(), y);
+  auto _ret = spu::mpc::cheetah::BatchLessThan(&kctx, x.data(), y); // pack multiple OTs into one OT with long messages
   for (auto& d : _ret) {
     d = d.reshape(x.shape());
     ret.emplace_back(d, DT_I1);
@@ -73,7 +73,7 @@ static Value do_f_sigmoid_positive(SPUContext* ctx, const Value& x) {
 
   float scale = 1L << fxp;
 
-  auto seg_3 = _mul(ctx, x3, constant(ctx, coeffs[3], x.dtype(), x.shape()));
+  auto seg_3 = _mul(ctx, x3, constant(ctx, coeffs[3], x.dtype(), x.shape())); // f_mul have trunc in it, _mul does not
   auto seg_2 = _mul(ctx, x2, constant(ctx, coeffs[2], x.dtype(), x.shape()));
   auto seg_1 = _mul(ctx, x, constant(ctx, coeffs[1], x.dtype(), x.shape()));
 

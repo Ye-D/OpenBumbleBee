@@ -35,10 +35,14 @@ def batch_matmul():
     batch = 16
     x = (np.random.randn(batch, 64, 128) * 8.0).astype(int)
     y = (np.random.randn(batch, 128, 256) * 8.0).astype(int)
-    target_func = lambda x, y: dot_general(x, y, ((2, 1), (0, 0)))
+
+    #target_func = lambda x, y: dot_general(x, y, ((3, 2), ((0, 1), (0, 1))))
+    target_func = lambda x, y: dot_general(x, y, ((2, 1), ((0, 0))))
+
 
     spu_fn = ppsim.sim_jax(sim, target_func)
     z = spu_fn(x, y)
+
     g = target_func(x, y)
     diff = z - g
 
@@ -59,9 +63,12 @@ def matmul_with_interleave():
     x = (np.random.randn(128, 768) * 8.0).astype(int)
     y = (np.random.randn(768, 768) * 8.0).astype(int)
 
-    spu_fn = ppsim.sim_jax(sim, jnp.dot)
+    def double_dot(x, y):
+        return jnp.dot(x, y)
+
+    spu_fn = ppsim.sim_jax(sim, double_dot)
     z = spu_fn(x, y)
-    g = jnp.dot(x, y)
+    g = double_dot(x, y)
     diff = z - g
 
     print("matmul max diff = {}".format(np.max(diff)))
@@ -89,6 +96,6 @@ def matmul_with_packlwe():
 
 
 if __name__ == "__main__":
-    batch_matmul()
-    # matmul_with_packlwe()
+    # batch_matmul()
+    matmul_with_packlwe()
     # matmul_with_interleave()

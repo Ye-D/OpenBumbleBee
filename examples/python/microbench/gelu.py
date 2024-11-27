@@ -30,12 +30,12 @@ def gelu():
     )
     config.enable_hal_profile = True
     config.experimental_enable_colocated_optimization = False
-    config.cheetah_2pc_config.enable_mul_lsb_error = True
-    config.cheetah_2pc_config.approx_less_precision = 4
+    config.cheetah_2pc_config.enable_mul_lsb_error = True # bOLEe, batched OLE with errors
+    config.cheetah_2pc_config.approx_less_precision = 4 # approximate the less than in segments, use less low-end f' bits, not all f bits
 
     sim = ppsim.Simulator(2, config)
 
-    x = np.random.randn(1 << 10) * 4.0
+    x = np.random.randn(1 << 20) * 8.0
     spu_fn = ppsim.sim_jax(sim, si.spu_gelu)
     z = spu_fn(x)
     g = jnn.gelu(x)
@@ -69,5 +69,5 @@ def silu():
 
 
 if __name__ == "__main__":
-    gelu()
-    # silu()
+    # gelu()
+    silu()
