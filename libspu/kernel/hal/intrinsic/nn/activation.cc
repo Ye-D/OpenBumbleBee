@@ -258,7 +258,7 @@ Value f_seg4_silu(SPUContext* ctx, const Value& x) {
 
     const auto ONE = _constant(ctx, 1, x32.shape());
     const auto True = _and(ctx, ONE, ONE);
-    // Compute branch indicators in FM32
+    // Compute branch indicators in FM32; smaller rings, better efficiency
     auto batch_less_than = ComputedBatchLessAP(ctx, x32, {-8.0, 0.0F, 8.0});
 
     batch_less_than[1] = _xor(ctx, batch_less_than[1], ONE);
@@ -309,7 +309,7 @@ Value f_neg_exp_taylor(SPUContext* ctx, const Value& x) {
     res = f_square(ctx, res);
   }
 
-  // convert the field and fxp back
+  // convert the field and fxp back; Is there any field change?
   auto ret = _mul(ctx, is_not_too_small, res).setDtype(x.dtype());
 
   sent = ctx->lctx()->GetStats()->sent_bytes - sent;
