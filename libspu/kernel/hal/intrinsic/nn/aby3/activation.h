@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 #include "libspu/kernel/hal/fxp_base.h"
-namespace spu::kernel::hal::intrinsic::nn {
+namespace spu::kernel::hal::intrinsic::aby3::nn {
 
 // exp(clip(x, -14)) for x < 0
 Value f_neg_exp_taylor(SPUContext* ctx, const Value& x);

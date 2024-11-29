@@ -52,5 +52,9 @@ ppdump/
 coverity*/
 idir/
 
+*.o
+/dist/
+*.class
+
 spu_wheel.name
 *.whl

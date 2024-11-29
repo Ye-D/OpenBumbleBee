@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "libspu/kernel/hal/intrinsic/nn/activation.h"
+#include "libspu/kernel/hal/intrinsic/nn/aby3/activation.h"
 
 #include <future>
 
@@ -25,11 +25,9 @@
 #include "libspu/kernel/hal/polymorphic.h"
 #include "libspu/kernel/hal/ring.h"
 #include "libspu/kernel/hal/type_cast.h"
-#include "libspu/mpc/cheetah/alg.h"
-#include "libspu/mpc/cheetah/conversion.h"
 #include "libspu/mpc/common/pv2k.h"
 
-namespace spu::kernel::hal::intrinsic::nn {
+namespace spu::kernel::hal::intrinsic::aby3::nn {
 
 static std::array<Value, 3> ComputeUptoPower4(SPUContext* ctx, const Value& x) {
   SPU_ENFORCE(x.isFxp() and x.isSecret());

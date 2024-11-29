@@ -19,7 +19,7 @@
 #include "libspu/device/intrinsic_table.h"
 #include "libspu/kernel/hal/debug.h"
 #include "libspu/kernel/hal/fxp_approx.h"
-#include "libspu/kernel/hal/intrinsic/nn/activation.h"
+#include "libspu/kernel/hal/intrinsic/nn/cheetah/activation.h"
 #include "libspu/kernel/hlo/basic_binary.h"
 #include "libspu/kernel/hlo/casting.h"
 #include "libspu/kernel/hlo/const.h"
