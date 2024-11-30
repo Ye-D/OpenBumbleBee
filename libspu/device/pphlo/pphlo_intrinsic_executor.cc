@@ -19,7 +19,8 @@
 #include "libspu/device/intrinsic_table.h"
 #include "libspu/kernel/hal/debug.h"
 #include "libspu/kernel/hal/fxp_approx.h"
-#include "libspu/kernel/hal/intrinsic/nn/cheetah/activation.h"
+#include "libspu/kernel/hal/intrinsic/nn/bumblebee/activation.h"
+#include "libspu/kernel/hal/intrinsic/nn/puma/activation.h"
 #include "libspu/kernel/hlo/basic_binary.h"
 #include "libspu/kernel/hlo/casting.h"
 #include "libspu/kernel/hlo/const.h"
@@ -150,20 +151,27 @@ std::vector<Value> intrinsic_dispatcher(SPUContext* ctx,
 
   if (name == GELU) {
     SPU_ENFORCE(inputs.size() == 1 && inputs[0].isFxp() &&
-                inputs[0].isSecret());
-    return {kernel::hal::intrinsic::nn::f_seg3_gelu(ctx, inputs[0])};
+                inputs[0].isSecret() && 
+                (ctx->config().protocol() == ProtocolKind::CHEETAH || ctx->config().protocol() == ProtocolKind::ABY3));
+    if (ctx->config().protocol() == ProtocolKind::CHEETAH) {
+      return {kernel::hal::intrinsic::nn::bumblebee::f_seg3_gelu(ctx, inputs[0])};
+    }
+    else {
+      return {kernel::hal::intrinsic::nn::puma::f_seg3_gelu(ctx, inputs[0])};
+    }
+
   }
 
   if (name == SILU) {
     SPU_ENFORCE(inputs.size() == 1 && inputs[0].isFxp() &&
                 inputs[0].isSecret());
-    return {kernel::hal::intrinsic::nn::f_seg4_silu(ctx, inputs[0])};
+    return {kernel::hal::intrinsic::nn::bumblebee::f_seg4_silu(ctx, inputs[0])};
   }
 
   if (name == NEG_EXP) {
     SPU_ENFORCE(inputs.size() == 1 && inputs[0].isFxp() &&
                 inputs[0].isSecret());
-    return {kernel::hal::intrinsic::nn::f_neg_exp_taylor(ctx, inputs[0])};
+    return {kernel::hal::intrinsic::nn::bumblebee::f_neg_exp_taylor(ctx, inputs[0])};
   }
 
   SPU_THROW("Unhandled intrinsic call {}", name.str());

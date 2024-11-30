@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "libspu/kernel/hal/intrinsic/nn/cheetah/activation.h"
+#include "libspu/kernel/hal/intrinsic/nn/puma/activation.h"
 
 #include <future>
 
@@ -25,11 +25,10 @@
 #include "libspu/kernel/hal/polymorphic.h"
 #include "libspu/kernel/hal/ring.h"
 #include "libspu/kernel/hal/type_cast.h"
-#include "libspu/mpc/cheetah/alg.h"
-#include "libspu/mpc/cheetah/conversion.h"
 #include "libspu/mpc/common/pv2k.h"
 
-namespace spu::kernel::hal::intrinsic::cheetah::nn {
+
+namespace spu::kernel::hal::intrinsic::nn::aby3 {
 
 static std::array<Value, 3> ComputeUptoPower4(SPUContext* ctx, const Value& x) {
   SPU_ENFORCE(x.isFxp() and x.isSecret());
@@ -39,24 +38,21 @@ static std::array<Value, 3> ComputeUptoPower4(SPUContext* ctx, const Value& x) {
   return {x2, x3, x4};
 }
 
+
 static std::vector<Value> ComputedBatchLessAP(SPUContext* ctx, const Value& x,
                                               absl::Span<const float> y) {
-  std::vector<Value> ret;
-  if (not x.isSecret() || ctx->config().protocol() != ProtocolKind::CHEETAH) {
-    for (float yy : y) {
-      ret.emplace_back(f_less(ctx, x, constant(ctx, yy, x.dtype(), x.shape())));
-    }
-    return ret;
-  }
+  SPU_ENFORCE(x.isSecret() and ctx->config().protocol() != ProtocolKind::ABY3);
 
-  KernelEvalContext kctx(ctx);
-  auto _ret = spu::mpc::cheetah::BatchLessThan(&kctx, x.data(), y); // pack multiple OTs into one OT with long messages
-  for (auto& d : _ret) {
-    d = d.reshape(x.shape());
-    ret.emplace_back(d, DT_I1);
+  std::vector<Value> ret;
+  
+  for (float yy : y) {
+    ret.emplace_back(f_less(ctx, x, constant(ctx, yy, x.dtype(), x.shape())));
   }
+  
   return ret;
+  
 }
+
 
 // sigmoid(x) for x > 0
 static Value do_f_sigmoid_positive(SPUContext* ctx, const Value& x) {
@@ -160,49 +156,14 @@ static Value do_f_seg3_gelu(SPUContext* ctx, Value x) {
 
 Value f_seg3_gelu(SPUContext* ctx, const Value& x_) {
   SPU_TRACE_HAL_LEAF(ctx, x_);
-  SPU_ENFORCE(ctx->config().protocol() == ProtocolKind::CHEETAH);
+  SPU_ENFORCE(ctx->config().protocol() == ProtocolKind::ABY3);
 
   [[maybe_unused]] size_t sent = ctx->lctx()->GetStats()->sent_bytes;
 
   // NOTE(lwj): We compute the whole seg3_gelu(x) over a smaller 32-bit ring.
   // We first cast down the share of x to the target ring FM32.
-  auto src_field = ctx->config().field();
-  auto target_field = FieldType::FM32;
 
-  spu::Value x = [&]() {
-    if (src_field == target_field) {
-      // noting to do
-      return x_;
-    }
-
-    KernelEvalContext kctx(ctx);
-    mpc::cheetah::CastRing ring_change_kernel;
-
-    spu::Value ret(ring_change_kernel.proc(&kctx, x_.data(), target_field),
-                   DT_F32);
-    // Because the ring_cast operation is not supported by SPU, we need to call
-    // Cheetah's CastRing protocol directly.
-    // Also, we need mannually modify the default field in RuntimeConfig to FM32
-    // NOTE(lwj): dirty hack to change the current field
-    const_cast<RuntimeConfig*>(&ctx->config())->set_field(target_field);
-    ctx->getState<spu::mpc::Z2kState>()->setField(target_field);
-
-    return ret;
-  }();
-
-  auto gelu = do_f_seg3_gelu(ctx, x);
-
-  if (src_field != target_field) {
-    // convert the field and fxp back
-    const_cast<RuntimeConfig*>(&ctx->config())->set_field(src_field);
-    ctx->getState<spu::mpc::Z2kState>()->setField(src_field);
-
-    KernelEvalContext kctx(ctx);
-    mpc::cheetah::CastRing ring_change_kernel;
-    gelu = Value(ring_change_kernel.proc(&kctx, gelu.data(), src_field,
-                                         SignType::Unknown),
-                 x_.dtype());
-  }
+  auto gelu = do_f_seg3_gelu(ctx, x_);
 
   sent = ctx->lctx()->GetStats()->sent_bytes - sent;
   SPDLOG_INFO("seg3_gelu {} sent {} MiB", gelu.numel(), sent / 1024. / 1024.);
@@ -245,36 +206,17 @@ Value f_seg4_silu(SPUContext* ctx, const Value& x) {
   [[maybe_unused]] size_t sent = ctx->lctx()->GetStats()->sent_bytes;
 
   auto branch_indicators = [&]() {
-    auto src_field = ctx->config().field();
-    auto target_field = FieldType::FM32;
-
-    KernelEvalContext kctx(ctx);
-    mpc::cheetah::CastRing ring_change_kernel;
-
-    Value x32(ring_change_kernel.proc(&kctx, x.data(), target_field), DT_F32);
-
-    const_cast<RuntimeConfig*>(&ctx->config())->set_field(target_field);
-    ctx->getState<spu::mpc::Z2kState>()->setField(target_field);
-
-    const auto ONE = _constant(ctx, 1, x32.shape());
+  
+    const auto ONE = _constant(ctx, 1, x.shape());
     const auto True = _and(ctx, ONE, ONE);
     // Compute branch indicators in FM32; smaller rings, better efficiency
-    auto batch_less_than = ComputedBatchLessAP(ctx, x32, {-8.0, 0.0F, 8.0});
+    auto batch_less_than = ComputedBatchLessAP(ctx, x, {-8.0, 0.0F, 8.0});
 
     batch_less_than[1] = _xor(ctx, batch_less_than[1], ONE);
     batch_less_than[2] = _xor(ctx, batch_less_than[2], ONE);
     batch_less_than[0] =
         _xor(ctx, _xor(ctx, batch_less_than[0], batch_less_than[2]), ONE);
 
-    for (size_t i : {0, 1, 2}) {
-      // cast back to the src_field
-      batch_less_than[i] = Value(
-          ring_change_kernel.proc(&kctx, batch_less_than[i].data(), src_field),
-          DT_I1);
-    }
-
-    const_cast<RuntimeConfig*>(&ctx->config())->set_field(src_field);
-    ctx->getState<spu::mpc::Z2kState>()->setField(src_field);
     return batch_less_than;
   }();
 
@@ -317,4 +259,4 @@ Value f_neg_exp_taylor(SPUContext* ctx, const Value& x) {
   return ret;
 }
 
-}  // namespace spu::kernel::hal::intrinsic::nn
+}  // namespace spu::kernel::hal::intrinsic::nn::cheetah

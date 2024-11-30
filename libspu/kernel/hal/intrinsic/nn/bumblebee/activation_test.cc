@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "libspu/kernel/hal/intrinsic/nn/cheetah/activation.h"
+#include "libspu/kernel/hal/intrinsic/nn/bumblebee/activation.h"
 
 #include <random>
 
@@ -87,7 +87,7 @@ TEST_P(ActivationTest, Seg3Gelu) {
     auto x = infeed<double>(ctx, _x);
 
     size_t bytes_sent = lctx->GetStats()->sent_bytes;
-    auto gelu = hal::intrinsic::nn::f_seg3_gelu(ctx, x);
+    auto gelu = hal::intrinsic::nn::bumblebee::f_seg3_gelu(ctx, x);
     bytes_sent = lctx->GetStats()->sent_bytes - bytes_sent;
 
     gelu = hlo::Reveal(ctx, gelu);
@@ -162,7 +162,7 @@ TEST_P(ActivationTest, Seg4Silu) {
     auto x = infeed<double>(ctx, _x);
 
     size_t bytes_sent = lctx->GetStats()->sent_bytes;
-    auto gelu = hal::intrinsic::nn::f_seg4_silu(ctx, x);
+    auto gelu = hal::intrinsic::nn::bumblebee::f_seg4_silu(ctx, x);
     bytes_sent = lctx->GetStats()->sent_bytes - bytes_sent;
 
     gelu = hlo::Reveal(ctx, gelu);
@@ -227,7 +227,7 @@ TEST_P(ActivationTest, NegExp) {
     auto x = infeed<double>(ctx, _x);
 
     size_t bytes_sent = lctx->GetStats()->sent_bytes;
-    auto nexp = hal::intrinsic::nn::f_neg_exp_taylor(ctx, x);
+    auto nexp = hal::intrinsic::nn::bumblebee::f_neg_exp_taylor(ctx, x);
     bytes_sent = lctx->GetStats()->sent_bytes - bytes_sent;
 
     nexp = hlo::Reveal(ctx, nexp);

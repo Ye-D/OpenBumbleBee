@@ -57,7 +57,8 @@ spu_cc_library(
         "//libspu/kernel/hlo:indexing",
         "//libspu/kernel/hlo:rank",
         "@llvm-project//llvm:Support",
-        "//libspu/kernel/hal/intrinsic/nn/cheetah:activation",
+        "//libspu/kernel/hal/intrinsic/nn/bumblebee:activation",
+        "//libspu/kernel/hal/intrinsic/nn/puma:activation",
     ],
 )
 

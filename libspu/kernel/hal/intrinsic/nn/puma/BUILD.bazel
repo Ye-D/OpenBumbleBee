@@ -23,20 +23,18 @@ spu_cc_library(
         "//libspu/kernel/hal:fxp_approx",
         "//libspu/kernel/hal:fxp_base",
         "//libspu/kernel/hal:polymorphic",
-        # "//libspu/mpc/cheetah:alg",
-        # "//libspu/mpc/cheetah:conversion",
     ],
 )
 
-#spu_cc_test(
-#    name = "activation_test",
-#    srcs = ["activation_test.cc"],
-#    deps = [
-#        ":activation",
-#        "//libspu/core:xt_helper",
-#        "//libspu/device:io",
-#        "//libspu/mpc:factory",
-#        "//libspu/mpc/utils:simulate",
-#        "//libspu/kernel/hlo:casting",
-#    ],
-#)
+spu_cc_test(
+    name = "activation_test",
+    srcs = ["activation_test.cc"],
+    deps = [
+        ":activation",
+        "//libspu/core:xt_helper",
+        "//libspu/device:io",
+        "//libspu/mpc:factory",
+        "//libspu/mpc/utils:simulate",
+        "//libspu/kernel/hlo:casting",
+    ],
+)
