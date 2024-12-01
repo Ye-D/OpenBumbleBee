@@ -26,14 +26,14 @@ import spu.utils.simulation as ppsim
 
 def naive_softmax():
     config = spu_pb2.RuntimeConfig(
-        protocol=spu_pb2.ProtocolKind.CHEETAH, field=spu_pb2.FieldType.FM64
+        protocol=spu_pb2.ProtocolKind.ABY3, field=spu_pb2.FieldType.FM64
     )
     config.enable_hal_profile = True
     config.fxp_exp_mode = 0
-    config.experimental_enable_colocated_optimization = False
-    config.cheetah_2pc_config.enable_mul_lsb_error = True
+    # config.experimental_enable_colocated_optimization = False
+    # config.cheetah_2pc_config.enable_mul_lsb_error = True
 
-    sim = ppsim.Simulator(2, config)
+    sim = ppsim.Simulator(3, config)
 
     x = np.random.randn(128, 32) * 8.0
 
@@ -49,12 +49,12 @@ def naive_softmax():
 
 def bumblebee_softmax():
     config = spu_pb2.RuntimeConfig(
-        protocol=spu_pb2.ProtocolKind.CHEETAH, field=spu_pb2.FieldType.FM64
+        protocol=spu_pb2.ProtocolKind.ABY3, field=spu_pb2.FieldType.FM64
     )
     config.enable_hal_profile = True
     config.fxp_exp_mode = 0
     config.experimental_enable_colocated_optimization = False
-    config.cheetah_2pc_config.enable_mul_lsb_error = True
+    # config.cheetah_2pc_config.enable_mul_lsb_error = True
     copts = spu_pb2.CompilerOptions()
     # Tweak compiler options
     # enable x / broadcast(y) -> x * broadcast(1/y) which accelerate the softmax
@@ -68,9 +68,9 @@ def bumblebee_softmax():
         divisor = jnp.sum(nexp, axis, where=where, keepdims=True)
         return nexp / divisor
 
-    sim = ppsim.Simulator(2, config)
+    sim = ppsim.Simulator(3, config)
 
-    x = np.random.randn(128, 32) * 8.0
+    x = np.random.randn(128*2, 1024*2)
 
     target_func = jnn.softmax
     spu_fn = ppsim.sim_jax(sim, _softmax, copts=copts)

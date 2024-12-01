@@ -545,7 +545,7 @@ def builtin_spu_init(
         logger.info(f"spu-runtime ({name}) already exist, reuse it")
         return
     desc = libspu.link.Desc()
-    desc.recv_timeout_ms = 100 * 1000  # 100 seconds
+    desc.recv_timeout_ms = 3600 * 1000  # 3600 seconds
     desc.http_max_payload_size = 32 * 1024 * 1024  # Default set link payload to 32M
     for rank, addr in enumerate(addrs):
         desc.add_party(f"r{rank}", addr)

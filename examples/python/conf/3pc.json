@@ -30,7 +30,9 @@
                     "protocol": "ABY3",
                     "field": "FM64",
                     "enable_pphlo_profile": true,
-                    "enable_hal_profile": true
+                    "enable_hal_profile": true,
+                    "fxp_exp_mode": 0,
+                    "fxp_exp_iters": 5
                 }
             }
         },

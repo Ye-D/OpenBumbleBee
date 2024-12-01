@@ -35,7 +35,7 @@ def gelu():
 
     sim = ppsim.Simulator(3, config)
 
-    x = np.random.randn(1 << 20) * 8.0
+    x = np.random.randn(1 << 19) * 8.0
     spu_fn = ppsim.sim_jax(sim, si.spu_gelu)
     z = spu_fn(x)
     g = jnn.gelu(x)
@@ -69,5 +69,5 @@ def silu():
 
 
 if __name__ == "__main__":
-    gelu()
-    # silu()
+    # gelu()
+    silu()

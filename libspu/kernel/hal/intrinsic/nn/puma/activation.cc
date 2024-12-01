@@ -160,8 +160,6 @@ Value f_seg3_gelu(SPUContext* ctx, const Value& x_) {
 
   [[maybe_unused]] size_t sent = ctx->lctx()->GetStats()->sent_bytes;
 
-  // NOTE(lwj): We compute the whole seg3_gelu(x) over a smaller 32-bit ring.
-  // We first cast down the share of x to the target ring FM32.
 
   auto gelu = do_f_seg3_gelu(ctx, x_);
 
@@ -179,7 +177,7 @@ Value do_f_seg4_silu(SPUContext* ctx, const Value& x,
   // branch_indicators[2] <=> x >= 8
 
   // |x| = x >= 0.0 ? x : -x
-  auto abs_x = hal::select(ctx, branch_indicators[1], x, f_negate(ctx, x));
+  auto abs_x = _mux(ctx, branch_indicators[1], x, f_negate(ctx, x)).setDtype(x.dtype());
 
   // sigmoid(|x|)
   auto pos_sigmoid = do_f_sigmoid_positive(ctx, abs_x);
@@ -188,8 +186,7 @@ Value do_f_seg4_silu(SPUContext* ctx, const Value& x,
   // 1 - sigmoid(|x|)
   auto neg_sigmoid = f_sub(ctx, ONE, pos_sigmoid);
 
-  auto sigmoid =
-      hal::select(ctx, branch_indicators[1], pos_sigmoid, neg_sigmoid);
+  auto sigmoid = _mux(ctx, branch_indicators[1], pos_sigmoid, neg_sigmoid).setDtype(x.dtype());
 
   // x >= 8
   auto silu = _mul(ctx, branch_indicators[2], ONE);
@@ -209,7 +206,7 @@ Value f_seg4_silu(SPUContext* ctx, const Value& x) {
   
     const auto ONE = _constant(ctx, 1, x.shape());
     const auto True = _and(ctx, ONE, ONE);
-    // Compute branch indicators in FM32; smaller rings, better efficiency
+
     auto batch_less_than = ComputedBatchLessAP(ctx, x, {-8.0, 0.0F, 8.0});
 
     batch_less_than[1] = _xor(ctx, batch_less_than[1], ONE);
@@ -232,6 +229,8 @@ Value f_neg_exp_taylor(SPUContext* ctx, const Value& x) {
   SPU_TRACE_HAL_LEAF(ctx, x);
 
   int fxp_exp_iters = ctx->config().fxp_exp_iters();
+  // SPDLOG_INFO("fxp_exp_iters {}", fxp_exp_iters);
+
   SPU_ENFORCE(fxp_exp_iters != 0, "fxp_exp_iters should not be {}",
               fxp_exp_iters);
 
@@ -259,4 +258,4 @@ Value f_neg_exp_taylor(SPUContext* ctx, const Value& x) {
   return ret;
 }
 
-}  // namespace spu::kernel::hal::intrinsic::nn::cheetah
+}  // namespace spu::kernel::hal::intrinsic::nn::puma

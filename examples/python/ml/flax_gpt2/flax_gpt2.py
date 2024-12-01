@@ -86,7 +86,7 @@ def hijack(enabled=True):
     fnn.softmax = fnn_sm
 
 
-TOKEN_NUM = 8
+TOKEN_NUM = 1
 
 
 def run_on_cpu(model, input_ids, tokenizer):
@@ -141,7 +141,7 @@ def main(tokenizer_func, model_func, checkpoint):
     model = model_func.from_pretrained(checkpoint)
     tokenizer = tokenizer_func.from_pretrained(checkpoint)
     input_ids = tokenizer.encode(
-        'I enjoy walking with my cute dog', return_tensors='jax'
+        'I enjoy walking with', return_tensors='jax'
     )
 
     run_on_cpu(model, input_ids, tokenizer)
