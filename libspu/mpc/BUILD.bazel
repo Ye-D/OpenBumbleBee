@@ -48,7 +48,7 @@ spu_cc_library(
         "//libspu:spu_cc_proto",
         "//libspu/mpc/cheetah",
         "//libspu/mpc/ref2k",
-        # "//libspu/mpc/aby3",
+        "//libspu/mpc/aby3",
         # "//libspu/mpc/securenn",
         # "//libspu/mpc/semi2k",
     ],

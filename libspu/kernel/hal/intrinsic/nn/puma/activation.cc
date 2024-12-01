@@ -28,7 +28,7 @@
 #include "libspu/mpc/common/pv2k.h"
 
 
-namespace spu::kernel::hal::intrinsic::nn::aby3 {
+namespace spu::kernel::hal::intrinsic::nn::puma {
 
 static std::array<Value, 3> ComputeUptoPower4(SPUContext* ctx, const Value& x) {
   SPU_ENFORCE(x.isFxp() and x.isSecret());
@@ -41,7 +41,7 @@ static std::array<Value, 3> ComputeUptoPower4(SPUContext* ctx, const Value& x) {
 
 static std::vector<Value> ComputedBatchLessAP(SPUContext* ctx, const Value& x,
                                               absl::Span<const float> y) {
-  SPU_ENFORCE(x.isSecret() and ctx->config().protocol() != ProtocolKind::ABY3);
+  SPU_ENFORCE(x.isSecret() and ctx->config().protocol() == ProtocolKind::ABY3);
 
   std::vector<Value> ret;
   

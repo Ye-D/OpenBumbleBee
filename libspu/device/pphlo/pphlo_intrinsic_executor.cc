@@ -164,14 +164,26 @@ std::vector<Value> intrinsic_dispatcher(SPUContext* ctx,
 
   if (name == SILU) {
     SPU_ENFORCE(inputs.size() == 1 && inputs[0].isFxp() &&
-                inputs[0].isSecret());
-    return {kernel::hal::intrinsic::nn::bumblebee::f_seg4_silu(ctx, inputs[0])};
+                inputs[0].isSecret() && 
+                (ctx->config().protocol() == ProtocolKind::CHEETAH || ctx->config().protocol() == ProtocolKind::ABY3));
+    if (ctx->config().protocol() == ProtocolKind::CHEETAH) {
+      return {kernel::hal::intrinsic::nn::bumblebee::f_seg4_silu(ctx, inputs[0])};
+    }
+    else {
+      return {kernel::hal::intrinsic::nn::puma::f_seg4_silu(ctx, inputs[0])};
+    }
   }
 
   if (name == NEG_EXP) {
     SPU_ENFORCE(inputs.size() == 1 && inputs[0].isFxp() &&
-                inputs[0].isSecret());
-    return {kernel::hal::intrinsic::nn::bumblebee::f_neg_exp_taylor(ctx, inputs[0])};
+                inputs[0].isSecret() && 
+                (ctx->config().protocol() == ProtocolKind::CHEETAH || ctx->config().protocol() == ProtocolKind::ABY3));
+    if (ctx->config().protocol() == ProtocolKind::CHEETAH) {
+      return {kernel::hal::intrinsic::nn::bumblebee::f_neg_exp_taylor(ctx, inputs[0])};
+    }
+    else {
+      return {kernel::hal::intrinsic::nn::puma::f_neg_exp_taylor(ctx, inputs[0])};
+    }
   }
 
   SPU_THROW("Unhandled intrinsic call {}", name.str());

@@ -26,14 +26,14 @@ import spu.utils.simulation as ppsim
 
 def gelu():
     config = spu_pb2.RuntimeConfig(
-        protocol=spu_pb2.ProtocolKind.CHEETAH, field=spu_pb2.FieldType.FM64
+        protocol=spu_pb2.ProtocolKind.ABY3, field=spu_pb2.FieldType.FM64
     )
     config.enable_hal_profile = True
     config.experimental_enable_colocated_optimization = False
-    config.cheetah_2pc_config.enable_mul_lsb_error = True # bOLEe, batched OLE with errors
-    config.cheetah_2pc_config.approx_less_precision = 4 # approximate the less than in segments, use less low-end f' bits, not all f bits
+    #config.cheetah_2pc_config.enable_mul_lsb_error = True # bOLEe, batched OLE with errors
+    #config.cheetah_2pc_config.approx_less_precision = 4 # approximate the less than in segments, use less low-end f' bits, not all f bits
 
-    sim = ppsim.Simulator(2, config)
+    sim = ppsim.Simulator(3, config)
 
     x = np.random.randn(1 << 20) * 8.0
     spu_fn = ppsim.sim_jax(sim, si.spu_gelu)
@@ -48,14 +48,14 @@ def gelu():
 
 def silu():
     config = spu_pb2.RuntimeConfig(
-        protocol=spu_pb2.ProtocolKind.CHEETAH, field=spu_pb2.FieldType.FM64
+        protocol=spu_pb2.ProtocolKind.ABY3, field=spu_pb2.FieldType.FM64
     )
     config.enable_hal_profile = True
     config.experimental_enable_colocated_optimization = False
-    config.cheetah_2pc_config.enable_mul_lsb_error = True
-    config.cheetah_2pc_config.approx_less_precision = 4
+    #config.cheetah_2pc_config.enable_mul_lsb_error = True
+    #config.cheetah_2pc_config.approx_less_precision = 4
 
-    sim = ppsim.Simulator(2, config)
+    sim = ppsim.Simulator(3, config)
 
     x = np.random.randn(1 << 20) * 8.0
     spu_fn = ppsim.sim_jax(sim, si.spu_silu)
@@ -69,5 +69,5 @@ def silu():
 
 
 if __name__ == "__main__":
-    # gelu()
-    silu()
+    gelu()
+    # silu()

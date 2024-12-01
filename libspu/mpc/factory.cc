@@ -23,8 +23,8 @@
 
 // NOTE(lwj) We turnoff the other back-end to accelerate the compile time
 //
-// #include "libspu/mpc/aby3/io.h"
-// #include "libspu/mpc/aby3/protocol.h"
+#include "libspu/mpc/aby3/io.h"
+#include "libspu/mpc/aby3/protocol.h"
 // #include "libspu/mpc/securenn/io.h"
 // #include "libspu/mpc/securenn/protocol.h"
 // #include "libspu/mpc/semi2k/io.h"
@@ -45,9 +45,9 @@ void Factory::RegisterProtocol(
     // case ProtocolKind::SEMI2K: {
     //   return regSemi2kProtocol(ctx, lctx);
     // }
-    // case ProtocolKind::ABY3: {
-    //   return regAby3Protocol(ctx, lctx);
-    // }
+    case ProtocolKind::ABY3: {
+      return regAby3Protocol(ctx, lctx);
+    }
     // case ProtocolKind::SECURENN: {
     //   return regSecurennProtocol(ctx, lctx);
     // }
@@ -69,9 +69,9 @@ std::unique_ptr<IoInterface> Factory::CreateIO(const RuntimeConfig& conf,
     // case ProtocolKind::SEMI2K: {
     //   return semi2k::makeSemi2kIo(conf.field(), npc);
     // }
-    // case ProtocolKind::ABY3: {
-    //   return aby3::makeAby3Io(conf.field(), npc);
-    // }
+    case ProtocolKind::ABY3: {
+      return aby3::makeAby3Io(conf.field(), npc);
+    }
     // case ProtocolKind::SECURENN: {
     //   return securenn::makeSecurennIo(conf.field(), npc);
     // }

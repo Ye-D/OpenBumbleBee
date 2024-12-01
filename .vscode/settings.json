@@ -41,5 +41,6 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "mlir.server_path": "bazel-bin/libspu/compiler/tools/spu-lsp"
+    "mlir.server_path": "bazel-bin/libspu/compiler/tools/spu-lsp",
+    "CodeGPT.apiKey": "CodeGPT Plus Beta"
 }
