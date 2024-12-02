@@ -196,7 +196,7 @@ static Value _mmul_impl(SPUContext* ctx, const Value& x, const Value& y) {
 static std::optional<Value> _batch_mmul_impl(SPUContext* ctx, const Value& x,
                                              const Value& y) {
   if (x.isSecret() && y.isSecret()) {  // SS
-    return _batch_mmul_ss(ctx, x, y);
+    return _batch_mmul_ss(ctx, x, y); // prot_wrapper.h, Line 94
   } else if (x.isSecret() && y.isPrivate()) {  // SV
     return _batch_mmul_sv(ctx, x, y);
   }

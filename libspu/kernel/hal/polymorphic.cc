@@ -137,7 +137,7 @@ std::optional<Value> batch_matmul(SPUContext* ctx, const Value& x,
                                   const Value& y) {
   SPU_TRACE_HAL_DISP(ctx, x, y);
   if (isCrossIntFxp(x, y)) {
-    auto ret = _batch_mmul(ctx, x, y);
+    auto ret = _batch_mmul(ctx, x, y); // ring.h, Line 56
     if (ret.has_value()) {
       auto new_dtype = x.isFxp() ? x.dtype() : y.dtype();
       ret->setDtype(new_dtype);
@@ -146,11 +146,11 @@ std::optional<Value> batch_matmul(SPUContext* ctx, const Value& x,
   }
 
   if (x.isInt() && y.isInt()) {
-    return i_batch_mmul(ctx, x, y);
+    return i_batch_mmul(ctx, x, y); // integer.h
   }
 
   if (x.isFxp() && y.isFxp()) {
-    return f_batch_mmul(ctx, x, y);
+    return f_batch_mmul(ctx, x, y); // fxp_base.h
   }
   return NotAvailable;
 }
