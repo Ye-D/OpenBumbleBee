@@ -22,7 +22,7 @@ class FerretOtInterface {
   virtual int Rank() const = 0;
   virtual void Flush() = 0;
 
-  // One-of-N OT where msg_array is a Nxn array.
+  // One-of-N OT where msg_array is a Nxn array., message is of length n
   // choice \in [0, N-1]
   virtual void SendCMCC(absl::Span<const uint8_t> msg_array, size_t N,
                         size_t bit_width = 0) = 0;
