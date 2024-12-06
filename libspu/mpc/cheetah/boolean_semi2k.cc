@@ -188,7 +188,7 @@ NdArrayRef BitIntlB::proc(KernelEvalContext*, const NdArrayRef& in,
     NdArrayView<ring2k_t> _out(out);
 
     pforeach(0, numel, [&](int64_t idx) {
-      _out[idx] = BitIntl<ring2k_t>(_in[idx], stride, nbits);
+      _out[idx] = BitIntl<ring2k_t>(_in[idx], stride, nbits); // c.f. libspu/core/bit_utils
     });
   });
 

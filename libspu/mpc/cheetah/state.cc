@@ -40,7 +40,7 @@ void CheetahMulState::makeSureCacheSize(FieldType field, int64_t numel) {
   //  create one batch OLE which then converted to Beavers
   //  Math:
   //   Alice samples rand0 and views it as rand0 = a0||b0
-  //   Bob samples rand1 and views it as rand1 = b1||a0
+  //   Bob samples rand1 and views it as rand1 = b1||a1
   //   The multiplication rand0 * rand1 gives two cross term a0*b1||a1*b0
   //   Then the beaver (a0, b0, c0) and (a1, b1, c1)
   //   where c0 = a0*b0 + <a0*b1> + <a1*b0>
@@ -63,8 +63,8 @@ void CheetahMulState::makeSureCacheSize(FieldType field, int64_t numel) {
     beaver[0] = rand.slice({num_beaver}, {num_beaver * 2}, {1});
     beaver[1] = rand.slice({0}, {num_beaver}, {1});
   }
-  a0b1 = cross.slice({0}, {num_beaver}, {1});
-  a1b0 = cross.slice({num_beaver}, {num_beaver * 2}, {1});
+  //a0b1 = cross.slice({0}, {num_beaver}, {1});
+  //a1b0 = cross.slice({num_beaver}, {num_beaver * 2}, {1});
 
   beaver[2] =
       ring_add(ring_add(cross.slice({0}, {num_beaver}, {1}),

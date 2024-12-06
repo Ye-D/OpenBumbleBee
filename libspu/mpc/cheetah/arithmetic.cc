@@ -75,7 +75,7 @@ NdArrayRef MsbA2B::proc(KernelEvalContext* ctx, const NdArrayRef& x) const {
 
   return DISPATCH_ALL_FIELDS(field, "_", [&]() {
     using u2k = std::make_unsigned<ring2k_t>::type;
-    const u2k mask = (static_cast<u2k>(1) << shft) - 1;
+    const u2k mask = (static_cast<u2k>(1) << shft) - 1; // mask = 2^{k-1} - 1
     NdArrayRef adjusted = ring_zeros(field, x.shape());
     auto xinp = NdArrayView<const u2k>(x);
     auto xadj = NdArrayView<u2k>(adjusted);
@@ -96,7 +96,7 @@ NdArrayRef MsbA2B::proc(KernelEvalContext* ctx, const NdArrayRef& x) const {
                            return prot.Compute(input, /*greater*/ true);
                          })
                          .as(x.eltype());
-    // [msb(x)]_B <- [1{x0 + x1 > 2^{k- 1} - 1]_B ^ msb(x0)
+    // [msb(x)]_B <- [1{x0 + x1 > 2^{k- 1} - 1]_B ^ msb(x_i)
     NdArrayView<u2k> _carry_bit(carry_bit);
     pforeach(0, numel, [&](int64_t i) { _carry_bit[i] ^= (xinp[i] >> shft); });
 
@@ -232,7 +232,7 @@ NdArrayRef MulAV::proc(KernelEvalContext* ctx, const NdArrayRef& x,
   auto* mul_prot = ctx->getState<CheetahMulState>()->get();
   mul_prot->LazyInitKeys(x.eltype().as<Ring2k>()->field());
 
-  // (x0 * x1) * y
+  // (x0 + x1) * y
   // <x0 * y> + x1 * y
   auto fx = x.reshape({numel});
   NdArrayRef out;
@@ -240,7 +240,7 @@ NdArrayRef MulAV::proc(KernelEvalContext* ctx, const NdArrayRef& x,
   // compute <x0 * y>
   if (rank != owner) {
     out = mul_prot->MulOLE(fx, /*eval*/ true);
-  } else {
+  } else {// rank == owner
     auto fy = y.reshape({numel});
     out = mul_prot->MulOLE(fy, /*eval*/ false);
     ring_add_(out, ring_mul(fx, fy));

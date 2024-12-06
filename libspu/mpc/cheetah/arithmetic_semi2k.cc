@@ -33,7 +33,7 @@ NdArrayRef P2A::proc(KernelEvalContext* ctx, const NdArrayRef& in) const {
   auto* comm = ctx->getState<Communicator>();
 
   auto [r0, r1] =
-      prg_state->genPrssPair(field, in.shape(), PrgState::GenPrssCtrl::Both);
+      prg_state->genPrssPair(field, in.shape(), PrgState::GenPrssCtrl::Both); // r1 = next_party.r0
   auto x = ring_sub(r0, r1).as(makeType<AShrTy>(field));
 
   if (comm->getRank() == 0) {
