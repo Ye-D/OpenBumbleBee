@@ -249,7 +249,7 @@ NdArrayRef RingExtendProtocol::Compute(const NdArrayRef &inp,
   Meta _meta = meta;
 
   if (meta.signed_arith and meta.sign != SignType::Unknown) {
-    // flip sign when dogin signed arithmetic
+    // flip sign when doing signed arithmetic
     // because SignedExt(x, k, k')  = UnsginedExt(x + 2^{k - 1} mod 2^k, k, k')
     // - 2^{k - 1}
     _meta.sign = meta.sign == SignType::Positive ? SignType::Negative

@@ -259,7 +259,7 @@ std::array<NdArrayRef, 2> BasicOTProtocols::CorrelatedBitwiseAnd(
   SPU_ENFORCE_EQ(shareType->nbits(), 1UL);
   auto [a, b0, c0, b1, c1] = CorrelatedAndTriple(field, lhs.shape());
 
-  // open x^a, y^b0, y1^b1
+  // open x^a, y0^b0, y1^b1
   int nbits = shareType->nbits();
   auto xa = OpenShare(ring_xor(lhs, a), ReduceOp::XOR, nbits, conn_);
   auto y0b0 = OpenShare(ring_xor(rhs0, b0), ReduceOp::XOR, nbits, conn_);
